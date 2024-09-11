@@ -1,11 +1,11 @@
-import requests
+import urllib.parse
+import urllib.request
 import json
 from colorama import init, Fore, Style
 import time
 import datetime
 import random
 init(autoreset=True)
-
 # Define color variables
 RED = Fore.RED + Style.BRIGHT
 GREEN = Fore.GREEN + Style.BRIGHT
@@ -16,8 +16,8 @@ CYAN = Fore.CYAN + Style.BRIGHT
 WHITE = Fore.WHITE + Style.BRIGHT
  
 
-bot_token = "BOT_TOKEN"
-chat_id = "TELE_ID"
+bot_token = "7468313179:AAF0bAZBKbbnX_vuj5DFRH6dFq-WR5iCa5w"
+chat_id = "968480911"
 
 def send_telegram_message(bot_token, chat_id, message):
     url = f"https://api.telegram.org/bot{bot_token}/sendMessage"
@@ -26,14 +26,17 @@ def send_telegram_message(bot_token, chat_id, message):
         "text": message,
         "parse_mode": "HTML"
     }
+    data = json.dumps(payload).encode('utf-8')
+    req = urllib.request.Request(url, data=data, headers={'Content-Type': 'application/json'})
     try:
-        response = requests.post(url, json=payload)
-        if response.status_code == 200:
-            print(f"{Fore.GREEN+Style.BRIGHT}Notification sent successfully.")
-        else:
-            print(f"{Fore.RED+Style.BRIGHT}Failed to send notification. Status code: {response.status_code}")
+        with urllib.request.urlopen(req) as response:
+            if response.status == 200:
+                print(f"{Fore.GREEN+Style.BRIGHT}Notification sent successfully.")
+            else:
+                print(f"{Fore.RED+Style.BRIGHT}Failed to send notification. Status code: {response.status}")
     except Exception as e:
         print(f"{Fore.RED+Style.BRIGHT}Error sending notification: {str(e)}")
+
 
 def get_headers(access_token=None):
     headers = {
@@ -53,19 +56,18 @@ def auth(init_data, retries=3, delay=2):
         "initData": init_data,
         "source": 'ref_e73a596d-2dc8-4e40-9697-4c242e438439'
     }
-    
+    data = json.dumps(body).encode('utf-8')
     for attempt in range(retries):
+        req = urllib.request.Request(url, data=data, headers=headers, method='POST')
         try:
-            response = requests.post(url, headers=headers, data=json.dumps(body))
-            response.raise_for_status()
-            hasil = response.text
-            # print(hasil)
-            if response.status_code == 201:
-                return hasil
-            else:
-                print(f"{RED}Error: QUERY INVALID / MATI", flush=True)
-                return None
-        except (requests.RequestException, ValueError) as e:
+            with urllib.request.urlopen(req) as response:
+                hasil = response.read().decode('utf-8')
+                if response.status == 201:
+                    return hasil
+                else:
+                    print(f"{RED}Error: QUERY INVALID / MATI", flush=True)
+                    return None
+        except (urllib.error.URLError, ValueError) as e:
             print(f"{RED}Error getting token: {e}", flush=True)
             if attempt < retries - 1:
                 print(f"{YELLOW}Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
@@ -73,21 +75,20 @@ def auth(init_data, retries=3, delay=2):
             else:
                 return None
 
-def user_detail(access_token,retries=3,delay=2):
+def user_detail(access_token, retries=3, delay=2):
     url = f"https://api-tg-app.midas.app/api/user"
     headers = get_headers(access_token)
-    
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers)
         try:
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            response_json = response.json()
-            if response.status_code == 200:
-                return response_json
-            else:
-                print(f"{RED}Error: Gagal mendapatkan user info", flush=True)
-                return None
-        except (requests.RequestException, ValueError) as e:
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))
+                if response.status == 200:
+                    return response_json
+                else:
+                    print(f"{RED}Error: Gagal mendapatkan user info", flush=True)
+                    return None
+        except (urllib.error.URLError, ValueError) as e:
             if attempt < retries - 1:
                 print(f"{YELLOW}User info: Error Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
                 time.sleep(delay)
@@ -98,16 +99,16 @@ def get_tasks(access_token,retries=3,delay=2):
     url = f"https://api-tg-app.midas.app/api/tasks/available"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers)
         try:
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            response_json = response.json()
-            if response.status_code == 200:
-                return response_json
-            else:
-                print(f"{RED}[ Task ] : Error: Gagal mendapatkan data", flush=True)
-                return None
-        except (requests.RequestException, ValueError) as e:
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))
+                if response.getcode() == 200:
+                    return response_json
+                else:
+                    print(f"{RED}[ Task ] : Error: Gagal mendapatkan data", flush=True)
+                    return None
+        except (urllib.error.URLError, ValueError) as e:
             # print(f"{RED}[ Task ] : Error daily_login: {e}", flush=True)
             if attempt < retries - 1:
                 print(f"{RED}[ Task ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
@@ -115,21 +116,20 @@ def get_tasks(access_token,retries=3,delay=2):
             else:
                 return None
 
-def get_cekin(access_token,retries=3,delay=2):
+def get_cekin(access_token, retries=3, delay=2):
     url = f"https://api-tg-app.midas.app/api/streak"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers)
         try:
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            response_json = response.json()
-            if response.status_code == 200:
-                return response_json
-            else:
-                print(f"{RED}[ Check-in ] : Error: Gagal mendapatkan data", flush=True)
-                return None
-        except (requests.RequestException, ValueError) as e:
-            # print(f"{RED}[ Task ] : Error daily_login: {e}", flush=True)
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))
+                if response.getcode() == 200:  # Use getcode() instead of status_code
+                    return response_json
+                else:
+                    print(f"{RED}[ Check-in ] : Error: Gagal mendapatkan data", flush=True)
+                    return None
+        except (urllib.error.URLError, ValueError) as e:
             if attempt < retries - 1:
                 print(f"{RED}[ Check-in ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
                 time.sleep(delay)
@@ -140,16 +140,17 @@ def get_referal(access_token,retries=3,delay=2):
     url = f"https://api-tg-app.midas.app/api/referral/status"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers)
         try:
-            response = requests.get(url, headers=headers)
-            response.raise_for_status()
-            response_json = response.json()
-            if response.status_code == 200:
-                return response_json
-            else:
-                print(f"{RED}[ Check-in ] : Error: Gagal mendapatkan data", flush=True)
-                return None
-        except (requests.RequestException, ValueError) as e:
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))
+            
+                if response.getcode() == 200:
+                    return response_json
+                else:
+                    print(f"{RED}[ Check-in ] : Error: Gagal mendapatkan data", flush=True)
+                    return None
+        except (urllib.error.URLError, ValueError) as e:
             # print(f"{RED}[ Task ] : Error daily_login: {e}", flush=True)
             if attempt < retries - 1:
                 print(f"{RED}[ Check-in ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
@@ -162,19 +163,20 @@ def claim_referal(access_token,retries=3,delay=2):
     url = f"https://api-tg-app.midas.app/api/referral/claim"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers, method='POST')
         try:
-            response = requests.post(url, headers=headers)
-            response_json = response.json()  # Parse JSON response before raising for status
-            if response.status_code == 201:
-                return response_json, response.status_code
-            elif response.status_code == 400:
-                return response_json, response.status_code
-            else:
-                return None, None
-        except (requests.RequestException, ValueError) as e:
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))  # Parse JSON response before raising for status
+                if response.getcode() == 201:
+                    return response_json, response.getcode()
+                elif response.getcode() == 400:
+                    return response_json, response.getcode()
+                else:
+                    return None, None
+        except (urllib.error.URLError, ValueError) as e:
             # print(f"{RED}[ Task ] : Error daily_login: {e}", flush=True)
             if attempt < retries - 1:
-                print(f"{RED}[ REferal ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
+                print(f"{RED}[ Referal ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
                 time.sleep(delay)
             else:
                 return None, None
@@ -182,16 +184,17 @@ def claim_cekin(access_token,retries=3,delay=2):
     url = f"https://api-tg-app.midas.app/api/streak"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers, method='POST')
         try:
-            response = requests.post(url, headers=headers)
-            response_json = response.json()  # Parse JSON response before raising for status
-            if response.status_code == 201:
-                return response_json, response.status_code
-            elif response.status_code == 400:
-                return response_json, response.status_code
-            else:
-                return None, None
-        except (requests.RequestException, ValueError) as e:
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))# Parse JSON response before raising for status
+                if response.getcode() == 201:
+                    return response_json, response.getcode()
+                elif response.getcode() == 400:
+                    return response_json, response.getcode()
+                else:
+                    return None, None
+        except (urllib.error.URLError, ValueError) as e:
             # print(f"{RED}[ Task ] : Error daily_login: {e}", flush=True)
             if attempt < retries - 1:
                 print(f"{RED}[ Check-in ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
@@ -203,19 +206,30 @@ def play_game(access_token,retries=3,delay=2):
     url = f"https://api-tg-app.midas.app/api/game/play"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers,  method='POST')
         try:
-            response = requests.post(url, headers=headers)
-            response_json = response.json()  # Parse JSON response before raising for status
-            if response.status_code == 201:
-                return response_json, response.status_code
-            elif response.status_code == 400:
-                return response_json, response.status_code
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))# Parse JSON response before raising for status
+                # print(response_json)
+                if response.getcode() == 201:
+                    return response_json, response.getcode()
+                elif response.getcode() == 400:
+                    return response_json, response.getcode()
+                else:
+                    return None, None
+        except urllib.error.HTTPError as e:
+            print(f"{RED}    ->  Error : {e}", flush=True)
+            # print(f"Status Code: {e.code}")
+            if attempt < retries - 1:
+                print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})",end="\r",  flush=True)
+                time.sleep(delay)
             else:
                 return None, None
-        except (requests.RequestException, ValueError) as e:
-            # print(f"{RED}[ Task ] : Error daily_login: {e}", flush=True)
+        except (urllib.error.URLError, ValueError) as e:
+            print(e.code)
+            print(f"{RED}    ->  Error : {e}", flush=True)
             if attempt < retries - 1:
-                print(f"{RED}[ Game ] : Error  Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
+                print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})",end="\r",  flush=True)
                 time.sleep(delay)
             else:
                 return None, None
@@ -224,18 +238,28 @@ def process_task(access_token, task_id,retries=3,delay=2):
     url = f"https://api-tg-app.midas.app/api/tasks/start/{task_id}"
     headers = get_headers(access_token)
     for attempt in range(retries):
-        try:
-            response = requests.post(url, headers=headers)
-            response_json = response.json()  # Parse JSON response before raising for status
-            if response.status_code == 201:
-                return response_json, response.status_code
-            elif response.status_code == 400:
+        req = urllib.request.Request(url, headers=headers, method='POST')
         
-                return response_json, response.status_code
+        try:
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))# Parse JSON response before raising for status
+                if response.getcode() == 201:
+                    return response_json, response.getcode()
+                elif response.getcode() == 400:
+                    return response_json, response.getcode()
+                else:
+                    print(f"{RED}    ->  : Error: Gagal mendapatkan data", flush=True)
+                    return None, None
+        except urllib.error.HTTPError as e:
+            print(f"{RED}    ->  Error : {e}", flush=True)
+            # print(f"Status Code: {e.code}")
+            if attempt < retries - 1:
+                print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})",end="\r",  flush=True)
+                time.sleep(delay)
             else:
-                print(f"{RED}    ->  : Error: Gagal mendapatkan data", flush=True)
                 return None, None
-        except (requests.RequestException, ValueError) as e:
+        except (urllib.error.URLError, ValueError) as e:
+            print(e.code)
             print(f"{RED}    ->  Error : {e}", flush=True)
             if attempt < retries - 1:
                 print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})",end="\r",  flush=True)
@@ -244,25 +268,34 @@ def process_task(access_token, task_id,retries=3,delay=2):
                 return None, None
  
 
-def claim_task(access_token, task_id,retries=3,delay=2):
+def claim_task(access_token, task_id, retries=3, delay=2):
     url = f"https://api-tg-app.midas.app/api/tasks/claim/{task_id}"
     headers = get_headers(access_token)
     for attempt in range(retries):
+        req = urllib.request.Request(url, headers=headers, method='POST')
         try:
-            response = requests.post(url, headers=headers)
-            response_json = response.json()  # Parse JSON response before raising for status
-            if response.status_code == 201:
-                return response_json, response.status_code
-            elif response.status_code == 400:
-        
-                return response_json, response.status_code
+            with urllib.request.urlopen(req) as response:
+                response_json = json.loads(response.read().decode('utf-8'))  # Parse JSON response before raising for status
+                if response.getcode() == 201:
+                    return response_json, response.getcode()
+                elif response.getcode() == 400:
+                    return response_json, response.getcode()
+                else:
+                    print(f"{RED}    ->  : Error: Gagal mendapatkan data", flush=True)
+                    return None, None
+        except urllib.error.HTTPError as e:
+            response = e.read().decode('utf-8')  # Decode the byte object
+            if e.code == 400:
+                return json.loads(response), e.code  # Parse JSON response
+            if attempt < retries - 1:
+                print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
+                time.sleep(delay)
             else:
-                print(f"{RED}    ->  : Error: Gagal mendapatkan data", flush=True)
                 return None, None
-        except (requests.RequestException, ValueError) as e:
+        except (urllib.error.URLError, ValueError) as e:
             print(f"{RED}    ->  Error : {e}", flush=True)
             if attempt < retries - 1:
-                print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})",end="\r",  flush=True)
+                print(f"{RED}    ->  : Retrying... ({attempt + 1}/{retries})", end="\r", flush=True)
                 time.sleep(delay)
             else:
                 return None, None
@@ -291,8 +324,8 @@ def main():
             init_data = init_data.strip()  # Remove any extra whitespace
             if not init_data:
                 continue
-            access_token = auth(init_data)
             print(f"{YELLOW}Getting access token...", end="\r", flush=True)
+            access_token = auth(init_data)
             time.sleep(1)
             if access_token is None:
                 continue
@@ -393,7 +426,7 @@ def main():
                             ghalibie, status_code = process_task(access_token, task_id)
                         
                             print(f"{YELLOW}    -> {title} - Point: {award} Clearing...{Style.RESET_ALL} ", end="\r", flush=True)
-                            time.sleep(1)
+                            time.sleep(2)
                             # print(ghalibie)
                             if ghalibie is not None:
                                 # print(task_id,status_code)
@@ -408,13 +441,14 @@ def main():
                                         print( f"{YELLOW}    -> {title} -{Style.RESET_ALL}{Fore.YELLOW} Point: {award} {GREEN}Already Clear. Claiming..{Style.RESET_ALL}                 ", end="\r", flush=True)
                    
                             ghalibie, status_code = claim_task(access_token, task_id)
-                            time.sleep(1)
+                            time.sleep(2)
                             if ghalibie is not None:
                                 if status_code == 201:
                                     state = ghalibie['state']
                                     if state == 'COMPLETED':
                                         print(f"{YELLOW}    -> {title} - {Style.RESET_ALL}{Fore.YELLOW} Point: {award} {GREEN}Claimed{Style.RESET_ALL}                                            ", flush=True)
                                 elif status_code == 400:
+                                    # print(ghalibie)
                                     message = ghalibie['message']
                                     if 'is not in a claimable state' in message:
                                         print( f"{YELLOW}    -> {title} -{Style.RESET_ALL}{Fore.YELLOW} Point: {award} {RED}Not Ready to Claim{Style.RESET_ALL}                 ", flush=True)
@@ -424,7 +458,7 @@ def main():
                                         print(f"{YELLOW}    -> {title} - {Style.RESET_ALL}{Fore.YELLOW} Point: {award} {GREEN}{ghalibie}{Style.RESET_ALL}          ", flush=True)
                         else:
                             ghalibie, status_code = claim_task(access_token, task_id)
-                            time.sleep(1)
+                            time.sleep(2)
                             if ghalibie is not None:
                                 if status_code == 201:
                                     state = ghalibie['state']
